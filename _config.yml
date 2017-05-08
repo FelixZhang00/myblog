@@ -82,6 +82,19 @@ disqus_shortname:
 theme: hexo-theme-material ##hexo-theme-next ##pacman  ##landscape
 exclude_generator:
 
+
+#启用相应插件
+Plugins:
+- hexo-generator-sitemap
+- hexo-generator-baidu-sitemap
+#配置站点地图文件
+#sitemap
+sitemap:
+    path: sitemap.xml    
+baidusitemap:
+path: baidusitemap.xml
+
+
 # Deployment
 ## Docs: http://hexo.io/docs/deployment.html
 deploy:
