@@ -4,7 +4,8 @@ title:  C++与汇编小结
 tag: c++ 
 ---
 
-本文通过C++反编译，帮助理解C++中的一些概念。
+本文通过C++反编译，帮助理解C++中的一些概念（指针引用、this指针、虚函数、析构函数、lambda表达式），
+希望能在深入理解C++其它一些高级特性（多重继承、RTTI、异常处理）能起到抛砖引玉的作用吧
 
 常用反汇编工具有：objdump、IDA Pro、[godbolt](https://gcc.godbolt.org/)
 以下代码均使用x86-64 gcc 6.3编译。
@@ -433,8 +434,57 @@ BaseClass::~BaseClass():
         ret
 
 ```
+通过分析C++析构函数的调用过程，我们就知道了为什么C++基类的析构函数要声明为virtual了。我们希望当调用C++基类BaseClass的析构函数时能够触发动态绑定，能够找到当前对象所属类的虚函数表中的析构函数。
+如果不声明BaseClass的析构函数为virtual，那么在调用`delete a_ptr`时，将只会释放BaseClass大小的内存，给SubClass中成员变量分配的内存将得不到释放，从而导致内存泄漏。
+
+## C++11中的Lambda表达式
+lambda表达式表示一个可调用的代码单元。可以理解为一个未命名的内联函数。
+lambda表达式具有如下形式：
+```
+[capture list](parameter list) -> return type {function body}
+```
+下面定义了一个C++函数，其中有一个lambda表达式。v1之前的&符号指出v1是以引用方式捕获，当lambda返回v1时，它返回的是v1指向对象的值，所以j的值是0，而不是42.
+```
+void fcn1(){
+    int v1 =42;
+    auto f= [&v1] {return v1;};
+    v1 = 0;
+    auto j = f();
+}
+```
+对应的反汇编代码如下，可以看到编译器为fcn1中的lambda表达式在代码段中生成了一段指令，当调用这个lambda时就会执行到这段指令，跟普通的函数调用一致。
+可以看出传递给`fcn1()::{lambda()#1}`函数的参数rdi的值其实就是v1变量的地址，所以这个lambda是是采用引用方式捕获变量的。
+```
+.Ltext0:
+fcn1()::{lambda()#1}::operator()() const:
+
+        push    rbp
+        mov     rbp, rsp
+        mov     QWORD PTR [rbp-8], rdi
+        mov     rax, QWORD PTR [rbp-8]
+        mov     rax, QWORD PTR [rax]
+        mov     eax, DWORD PTR [rax]
+        pop     rbp
+        ret
+fcn1():
+        push    rbp
+        mov     rbp, rsp
+        sub     rsp, 16
+        mov     DWORD PTR [rbp-8], 42
+        lea     rax, [rbp-8]
+        mov     QWORD PTR [rbp-16], rax
+        mov     DWORD PTR [rbp-8], 0
+        lea     rax, [rbp-16]
+        mov     rdi, rax
+        call    fcn1()::{lambda()#1}::operator()() const
+        mov     DWORD PTR [rbp-4], eax
+        nop
+        leave
+        ret
+```
 
 ---
 ## 参考
 《IDA Pro权威指南》
 《C++反汇编与逆向分析技术揭秘》
+《C++ Primer（第5版）》
