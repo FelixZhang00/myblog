@@ -12,27 +12,27 @@ Android程序员不得不知的调试技巧。
 
 首先需要把AOSP源码导入到Android Studio中，如果是macOS系统可以参考[这篇文章](http://blog.csdn.net/u012455213/article/details/54647010)。
 导入后如下图所示：
-![](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/37996598-file_1485133690721_e86b.png)
+![](http://ww1.sinaimg.cn/large/8b331ee1gy1gds4vshutdj207a0fzdiw.jpg)
 
 ### 调试原理
 Java平台的调试是有一个规范化的标准的，那就是JPDA（Java Platform Debugger Architecture）；通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI）。
 调试需要堆栈、符号等信息都保存在JVM中，调试器（debugger）需要通过一种渠道获取这些信息，并通过这个渠道发送调试指令给JVM，JDWP就是调试器与JVM通信的渠道。在JVM内部有一个专门的jdwp线程，Android系统的adbd守护进程通过socket与各个虚拟机的jdwp线程进行通信，外部调试器通过主机的adb与adbd通信进而完成与jdwp的通信。具体过程如下图：
-![调试架构图](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/20297449-file_1485133715439_160b3.png)
+![调试架构图](http://ww1.sinaimg.cn/large/8b331ee1gy1gds4wwfle0j20fh0bejs2.jpg)
 
 ### 配置Debug选项
 在菜单栏上依次点击Run -> Edit Configurations -> Remote，打开并配置成如下的页面
-![aosp_java_debug](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/32613201-file_1485133728789_eace.png)
+![aosp_java_debug](http://ww1.sinaimg.cn/large/8b331ee1gy1gds4xjyk10j21900u00zk.jpg)
 
 ### Exclued 不必要的文件夹
 在断点调试时，JVM会告诉AS自己在xx.java的第xx行被断住了，AS就会定位到这个位置，但是如果有重复的文件的名的，往往会出现定位不准的情况，所以需要把不必要的文件夹排除在整个源码结构之外。打开Project Structure,做如下修改
-![Exclued](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/98071738-file_1485133747899_256c.png)
+![Exclued](http://ww1.sinaimg.cn/large/8b331ee1gy1gds4y6n8oaj20dc085767.jpg)
 如果遇上断点文件对不上的情况时，就手动在这里Exclued好了。
 也可以直接修改`aosp-root/development/tools/idegen/excluded-paths`文件中的内容，添加exclude，再运行`idegen.sh` 重新生成IDE代码树。
 
 
 ### 在源码处打断点
 我们在WebView.java的loadUrl处打断点
-![](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/38678927-file_1485133770804_2652.png)
+![dd](http://ww1.sinaimg.cn/large/8b331ee1gy1gds4ymbc98j21900ckjx9.jpg)
 点击调试按钮，你会看到Console中的提示
 ```bash
 Connected to the target VM, address: 'localhost:8700' , transport: 'socket' 
@@ -40,7 +40,7 @@ Connected to the target VM, address: 'localhost:8700' , transport: 'socket'
 
 ### 打开DDMS
 在菜单栏上依次点击Tools ->Android -> Android Device Monitor，打开DDMS后,点击
-![ddms](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/59482474-file_1485133844742_d58b.png)
+![ddms.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds4zc44wnj218n0d341s.jpg)
 
 在monitor中我们可以看到有3列，分别是
 
@@ -51,7 +51,7 @@ Connected to the target VM, address: 'localhost:8700' , transport: 'socket'
 
 ### 开始调试
 当在浏览器中加载一个网页时，就能触发之前设置的loadUrl的断点了，如此就可以使用各种调试手段了。
-![loadUrl堆栈](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/60962148-file_1485133869972_a8b8.png)
+![loadUrl堆栈.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds4zxmc02j210i0s6dnq.jpg)
 
 ---
 ## C++层调试
@@ -72,10 +72,13 @@ $ emulator -avd Nexus5-API22 -verbose -no-boot-anim -system (the path of system.
 ### 配置Debugger
 这里需要新建一个Android Demo工程了，直接用AOSP源码那个工程，没有是Native Debug那个选项的。
 按如下方式配置符号表，需要与设备上用的so是同一份。并且改Debug type 为Native。
-![配置Debugger](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/98365902-file_1485133891159_d5e1.png)
+![配置Debugger.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds51d4y7yj211t0d4dhl.jpg)
+
 符号表的添加也可以通过lldb命令行的方式添加
-![lldb-pause](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/11135935-file_1485133911409_87f8.png)
-![lldb-add-dsym](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/81500034-file_1485133908937_c39f.png)
+
+![lldb-pause](http://ww1.sinaimg.cn/large/8b331ee1gy1gds51ol9u2j203d02q0sl.jpg)
+
+![lldb-add-dsym.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds52iv28sj219006vn1a.jpg)
 LLDB需要这些符号信息才能帮你定位到调试断点的代码。
 
 ### 配置源码到AS
@@ -88,13 +91,15 @@ $ ln -s xx/bionic/libc  xx/source/libc
 
 ### 打断点
 我在getaddrinfo.c的getaddrinfo方法处打一个断点，看看webview在加载网页时的域名解析会不会走到这里。
-![getaddrinfo](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/25829366-file_1485133943240_17e29.png)
+![getaddrinfo.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds534tma5j219005vjv1.jpg)
 点击Debug按钮，当Demo程序开始LoadUrl之后，就会被Debug断住，如下是chromium域名解析线程的堆栈（这里的方法名真够长的。。。），这样我们就可以进一步了解webview加载网页时域名解析的过程了。
-![getaddrinfo-stack](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/58831938-file_1485134083110_4efc.png)
+![getaddrinfo-stack.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds55b7bb0j21900e3n5v.jpg)
 让我们看看其他线程在干啥，整个世界都停止了。
-![chromium-threads](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/98647443-file_1485134070646_62ea.png)
-![renderthread](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/78278941-file_1485133978101_8702.png)
-![jdwp](http://7viip0.com1.z0.glb.clouddn.com/17-1-23/9092603-file_1485134218822_d5f1.png)
+![chromium-threads.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds55pzoetj20um0d4416.jpg)
+
+![renderthread.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds568u1hrj20zo0fmmzw.jpg)
+
+![jdwp.png](http://ww1.sinaimg.cn/large/8b331ee1gy1gds56o9vk0j20zo0duq5k.jpg)
 
 --- 
 ## 不足之处
